@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     database_url: str = 'sqlite+aiosqlite:///./fastapi.db'
     secret: str = 'SECRET'
     INVESTED_DEFAULT_VALUE = 0
+    LIFETIME_SECONDS = 3600
+    MIN_LEN_PASSWORD = 3
     first_superuser_email: Optional[EmailStr] = None
     first_superuser_password: Optional[str] = None
 

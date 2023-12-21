@@ -26,8 +26,8 @@ async def invest_update(
 ):
     """Функция изменения статуса проекта при обновлении требуемой суммы для проекта."""
     if project.full_amount == project.invested_amount:
-        setattr(project, 'fully_invested', True)
-        setattr(project, 'close_date', datetime.now())
+        project.fully_invested = True
+        project.close_date = datetime.now()
         session.add(project)
         await session.commit()
 
@@ -58,19 +58,17 @@ async def investment_process(
                 obj_in_balance = obj_in.full_amount - obj_in.invested_amount
                 obj_balance = obj.full_amount - obj.invested_amount
                 if obj_in_balance <= obj_balance:
-                    setattr(obj, 'invested_amount', (obj.invested_amount + obj_in_balance))
-                    setattr(obj_in, 'invested_amount', obj_in.invested_amount + obj_in_balance)
-                    setattr(obj_in, 'fully_invested', True)
-                    setattr(obj_in, 'close_date', datetime.now())
+                    obj.invested_amount = obj.invested_amount + obj_in_balance
+                    obj_in.invested_amount = obj_in.invested_amount + obj_in_balance
+                    obj_in.fully_invested = True
+                    obj_in.close_date = datetime.now()
                     if obj_balance == obj_in_balance:
-                        setattr(obj, 'fully_invested', True)
-                        setattr(obj, 'close_date', datetime.now())
+                        obj.fully_invested = True
+                        obj.close_date = datetime.now()
                 elif obj_in_balance > obj_balance:
-                    setattr(obj, 'invested_amount', obj.full_amount)
-                    setattr(obj, 'fully_invested', True)
-                    setattr(obj, 'close_date', datetime.now())
-                    setattr(obj_in, 'invested_amount', (obj_in.invested_amount + obj_balance))
+                    obj.invested_amount = obj.full_amount
+                    obj.fully_invested = True
+                    obj.close_date = datetime.now()
+                    obj_in.invested_amount = obj_in.invested_amount + obj_balance
                 session.add(obj, obj_in)
-        else:
-            pass
     await session.commit()

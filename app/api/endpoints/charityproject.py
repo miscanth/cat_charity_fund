@@ -47,10 +47,8 @@ async def create_new_project(
 async def get_all_projects(
         session: AsyncSession = Depends(get_async_session),
 ):
-    """Возвращает список всех проектов.
-    """
-    all_projects = await project_crud.get_multi(session)
-    return all_projects
+    """Возвращает список всех проектов."""
+    return await project_crud.get_multi(session)
 
 
 @router.patch(
@@ -97,7 +95,6 @@ async def remove_project(
         project_id, session
     )
     await check_charity_invested_before_delete(project)
-    project = await project_crud.remove(
+    return await project_crud.remove(
         project, session
     )
-    return project
