@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Union
 
 from pydantic import BaseModel, Field, PositiveInt, Extra, root_validator, validator
 
@@ -32,7 +32,15 @@ class CharityProjectUpdate(CharityProjectBase):
     def name_cant_be_null(cls, value: str):
         if value is None:
             raise ValueError('Имя проекта не может быть пустым!')
-        return value 
+        return value
+    
+    """@validator('full_amount')
+    def name_cant_be_null(cls, value: int):
+        if value is None:
+            raise ValueError('Имя проекта не может быть пустым!')
+        if value < cls.invested_amount:
+            raise ValueError('Нельзя устанавливать для поля full_amount сумму меньше уже внесённой!')
+        return value"""
     
     """@root_validator(skip_on_failure=True)
     def fields_cannot_be_null(cls, values):
@@ -40,8 +48,6 @@ class CharityProjectUpdate(CharityProjectBase):
             if values[field] is None:
                 raise ValueError('Данное поле проекта не может быть пустым!')
         return values"""
-    
-    
 
 
 class CharityProjectDB(CharityProjectCreate):
@@ -50,7 +56,7 @@ class CharityProjectDB(CharityProjectCreate):
     invested_amount: int
     fully_invested: bool
     create_date: datetime
-    close_date: Optional[datetime]
+    close_date: datetime = Field(default=None)
 
     class Config:
         orm_mode = True

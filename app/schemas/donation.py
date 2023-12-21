@@ -10,7 +10,7 @@ TIME_FORMAT = (datetime.now()).isoformat(timespec='minutes')
 class DonationBase(BaseModel):
     """Базовый класс схемы"""
     full_amount: Optional[PositiveInt]
-    comment: Optional[str] = Field(..., min_length=1)
+    comment: Optional[str] = Field(None, min_length=1)
 
 
 class DonationCreate(DonationBase):
@@ -31,7 +31,7 @@ class DonationDB(DonationBase):
 
 class DonationReadDB(DonationDB):
     """Схема ответа, возвращаемого из БД для метода Read."""
-    # user_id: 
+    user_id: Optional[int]
     invested_amount: int
     fully_invested: bool
     close_date: Optional[datetime]

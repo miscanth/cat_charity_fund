@@ -1,6 +1,4 @@
-from datetime import datetime
-
-from sqlalchemy import Boolean, DateTime, Column, Integer, String
+from sqlalchemy import Column, String
 
 from .base import AbstractModel
 

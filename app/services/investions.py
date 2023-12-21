@@ -3,7 +3,6 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.crud.charityproject import get_project_by_id, get_project_id_by_name
 from app.models import CharityProject, Donation
 
 
@@ -18,28 +17,19 @@ async def invest_donation(
         )
     ) 
     not_invested_projects = not_invested_projects.scalars().all()
-    for project in not_invested_projects:
-        if donation.fully_invested == False:
-            if project is not None:
-                project_balance = project.full_amount - project.invested_amount
-                donation_balance = donation.full_amount - donation.invested_amount
-                if donation_balance <= project_balance:
-                    setattr(project, 'invested_amount', (project.invested_amount + donation_balance))
-                    setattr(donation, 'invested_amount', donation.invested_amount + donation_balance)
-                    setattr(donation, 'fully_invested', True)
-                    setattr(donation, 'close_date', datetime.now())
-                    if donation_balance == project_balance:
-                        setattr(project, 'fully_invested', True)
-                        setattr(project, 'close_date', datetime.now())
-                elif donation_balance > project_balance:
-                    setattr(project, 'invested_amount', project.full_amount)
-                    setattr(project, 'fully_invested', True)
-                    setattr(project, 'close_date', datetime.now())
-                    setattr(donation, 'invested_amount', (donation.invested_amount + project_balance))
-                session.add(donation, project)
-        else:
-            pass
-    await session.commit()
+    await investment_process(donation, not_invested_projects, session)
+
+
+async def invest_update(
+        project: CharityProject,
+        session: AsyncSession,
+):
+    """Функция изменения статуса проекта при обновлении требуемой суммы для проекта."""
+    if project.full_amount == project.invested_amount:
+        setattr(project, 'fully_invested', True)
+        setattr(project, 'close_date', datetime.now())
+        session.add(project)
+        await session.commit()
 
 
 async def invest_in_project(
@@ -53,27 +43,34 @@ async def invest_in_project(
         )
     )
     not_invested_donations = not_invested_donations.scalars().all()
-    for donation in not_invested_donations:
-        if project.fully_invested == False:
-            if donation is not None:
-                project_balance = project.full_amount - project.invested_amount
-                donation_balance = donation.full_amount - donation.invested_amount
-                if project_balance <= donation_balance:
-                    setattr(donation, 'invested_amount', (donation.invested_amount + project_balance))
-                    setattr(project, 'invested_amount', project.invested_amount + project_balance)
-                    setattr(project, 'fully_invested', True)
-                    setattr(project, 'close_date', datetime.now())
-                    if donation_balance == project_balance:
-                        setattr(donation, 'fully_invested', True)
-                        setattr(donation, 'close_date', datetime.now())
-                elif project_balance > donation_balance:
-                    setattr(donation, 'invested_amount', donation.full_amount)
-                    setattr(donation, 'fully_invested', True)
-                    setattr(donation, 'close_date', datetime.now())
-                    setattr(project, 'invested_amount', (project.invested_amount + donation_balance))
-                session.add(donation, project)
+    await investment_process(project, not_invested_donations, session)
+
+
+async def investment_process(
+        obj_in,
+        not_invested_obj_list,
+        session: AsyncSession,
+):
+    """Общая функция инвестирования для пожертвований и проектов."""
+    for obj in not_invested_obj_list:
+        if obj_in.fully_invested == False:
+            if obj is not None:
+                obj_in_balance = obj_in.full_amount - obj_in.invested_amount
+                obj_balance = obj.full_amount - obj.invested_amount
+                if obj_in_balance <= obj_balance:
+                    setattr(obj, 'invested_amount', (obj.invested_amount + obj_in_balance))
+                    setattr(obj_in, 'invested_amount', obj_in.invested_amount + obj_in_balance)
+                    setattr(obj_in, 'fully_invested', True)
+                    setattr(obj_in, 'close_date', datetime.now())
+                    if obj_balance == obj_in_balance:
+                        setattr(obj, 'fully_invested', True)
+                        setattr(obj, 'close_date', datetime.now())
+                elif obj_in_balance > obj_balance:
+                    setattr(obj, 'invested_amount', obj.full_amount)
+                    setattr(obj, 'fully_invested', True)
+                    setattr(obj, 'close_date', datetime.now())
+                    setattr(obj_in, 'invested_amount', (obj_in.invested_amount + obj_balance))
+                session.add(obj, obj_in)
         else:
             pass
     await session.commit()
-
-

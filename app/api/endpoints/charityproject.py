@@ -1,11 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
+from http import HTTPStatus
 
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.validators import check_project_exists, check_name_duplicate
+from app.api.validators import check_charity_invested_before_delete, check_project_exists, check_name_duplicate, check_amount_update, check_project_closed_before_update
 from app.core.db import get_async_session
-from app.crud.charityproject import create_charity_project, delete_project, read_all_projects_from_db, update_project
-from app.services.investions import invest_in_project
+from app.core.user import current_superuser
+from app.crud.charityproject import project_crud
+from app.services.investions import invest_in_project, invest_update
 from app.schemas.charityproject import CharityProjectCreate, CharityProjectDB, CharityProjectUpdate
 
 router = APIRouter()
@@ -14,14 +16,17 @@ router = APIRouter()
 @router.post(
         '/',
         response_model=CharityProjectDB,
-        response_model_exclude_none=True) #response_model_exclude_defaults, response_model_exclude_unset
-async def create_new_charity_project(
+        response_model_exclude_none=True,
+        dependencies=[Depends(current_superuser)],
+)
+async def create_new_project(
         project: CharityProjectCreate,
         session: AsyncSession = Depends(get_async_session),
 ):
-    """Создание нового объекта проекта для пожертвований."""
+    """Создание нового объекта проекта для пожертвований.
+    Только для суперюзеров."""
     await check_name_duplicate(project.name, session)
-    new_project = await create_charity_project(project, session)
+    new_project = await project_crud.create(project, session)
     await invest_in_project(new_project, session)
     await session.refresh(new_project)
     return new_project
@@ -35,48 +40,57 @@ async def create_new_charity_project(
 async def get_all_projects(
         session: AsyncSession = Depends(get_async_session),
 ):
-    """Возвращает список всех проектов."""
-    all_projects = await read_all_projects_from_db(session)
+    """Возвращает список всех проектов.
+    """
+    all_projects = await project_crud.get_multi(session)
     return all_projects
 
 
 @router.patch(
     '/{project_id}',
     response_model=CharityProjectDB,
-    response_model_exclude_none=True,
+    dependencies=[Depends(current_superuser)],
 )
 async def partially_update_project(
         project_id: int,
         obj_in: CharityProjectUpdate,
         session: AsyncSession = Depends(get_async_session),
 ):
-    """Частично обновляет отдельный проект."""
-    project= await check_project_exists(
+    """Частично обновляет отдельный проект.
+    Только для суперюзеров."""
+    project = await check_project_exists(
         project_id, session
     )
+    await check_project_closed_before_update(project)
     if obj_in.name is not None:
         await check_name_duplicate(obj_in.name, session)
+    if obj_in.full_amount is not None:
+        await check_amount_update(obj_in.full_amount, project)
 
-    project = await update_project(
-        db_project=project, project_in=obj_in, session=session
+    project = await project_crud.update(
+        project, obj_in, session
     )
+    await invest_update(project, session)
+    await session.refresh(project)
     return project
 
 
 @router.delete(
-    '/{meeting_room_id}',
+    '/{project_id}',
     response_model=CharityProjectDB,
-    response_model_exclude_none=True,
+    dependencies=[Depends(current_superuser)],
 )
 async def remove_project(
         project_id: int,
         session: AsyncSession = Depends(get_async_session),
 ):
-    """Удаляет объект и возвращает его данные."""
+    """Удаляет проект и возвращает его данные.
+    Только для суперюзеров."""
     project = await check_project_exists(
         project_id, session
     )
-    project = await delete_project(
+    await check_charity_invested_before_delete(project)
+    project = await project_crud.remove(
         project, session
     )
     return project
