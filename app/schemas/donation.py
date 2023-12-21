@@ -4,9 +4,6 @@ from typing import Optional
 from pydantic import BaseModel, Field, PositiveInt
 
 
-TIME_FORMAT = (datetime.now()).isoformat(timespec='minutes')
-
-
 class DonationBase(BaseModel):
     """Базовый класс схемы"""
     full_amount: Optional[PositiveInt]

@@ -42,7 +42,7 @@ async def check_amount_update(
     if amount_in < db_project.invested_amount:
         raise HTTPException(
             status_code=422,
-            detail='Нельзя устанавливать для поля full_amount сумму меньше уже внесённой!'
+            detail='Нельзя устанавливать требуемую сумму меньше внесённой!'
         )
 
 
@@ -50,7 +50,7 @@ async def check_project_closed_before_update(
         db_project: CharityProject
 ) -> None:
     """Запрещает редактировать закрытый проект."""
-    if db_project.fully_invested == True:
+    if db_project.fully_invested:
         raise HTTPException(
             status_code=400,
             detail='Закрытый проект нельзя редактировать!'

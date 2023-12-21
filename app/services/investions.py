@@ -1,5 +1,5 @@
 from datetime import datetime
-from fastapi import HTTPException
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -13,9 +13,9 @@ async def invest_donation(
     """Функция распределения пожертвований по незакрытым проектам."""
     not_invested_projects = await session.execute(
         select(CharityProject).where(
-            CharityProject.fully_invested == False
+            CharityProject.fully_invested == 0
         )
-    ) 
+    )
     not_invested_projects = not_invested_projects.scalars().all()
     await investment_process(donation, not_invested_projects, session)
 
@@ -39,7 +39,7 @@ async def invest_in_project(
     """Функция распределения свободных сумм пожертвований в новый проект."""
     not_invested_donations = await session.execute(
         select(Donation).where(
-            Donation.fully_invested == False
+            Donation.fully_invested == 0
         )
     )
     not_invested_donations = not_invested_donations.scalars().all()
@@ -53,7 +53,7 @@ async def investment_process(
 ):
     """Общая функция инвестирования для пожертвований и проектов."""
     for obj in not_invested_obj_list:
-        if obj_in.fully_invested == False:
+        if not obj_in.fully_invested:
             if obj is not None:
                 obj_in_balance = obj_in.full_amount - obj_in.invested_amount
                 obj_balance = obj.full_amount - obj.invested_amount

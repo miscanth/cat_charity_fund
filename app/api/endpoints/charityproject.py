@@ -1,23 +1,30 @@
-from http import HTTPStatus
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.validators import check_charity_invested_before_delete, check_project_exists, check_name_duplicate, check_amount_update, check_project_closed_before_update
+from app.api.validators import (
+    check_charity_invested_before_delete,
+    check_name_duplicate, check_amount_update,
+    check_project_closed_before_update,
+    check_project_exists,
+)
 from app.core.db import get_async_session
 from app.core.user import current_superuser
 from app.crud.charityproject import project_crud
+from app.schemas.charityproject import (
+    CharityProjectCreate, CharityProjectDB,
+    CharityProjectUpdate
+)
 from app.services.investions import invest_in_project, invest_update
-from app.schemas.charityproject import CharityProjectCreate, CharityProjectDB, CharityProjectUpdate
+
 
 router = APIRouter()
 
 
 @router.post(
-        '/',
-        response_model=CharityProjectDB,
-        response_model_exclude_none=True,
-        dependencies=[Depends(current_superuser)],
+    '/',
+    response_model=CharityProjectDB,
+    response_model_exclude_none=True,
+    dependencies=[Depends(current_superuser)],
 )
 async def create_new_project(
         project: CharityProjectCreate,
@@ -94,4 +101,3 @@ async def remove_project(
         project, session
     )
     return project
-

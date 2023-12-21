@@ -1,11 +1,7 @@
-from datetime import datetime, timedelta
-from typing import Optional, Union
+from datetime import datetime
+from typing import Optional
 
-from pydantic import BaseModel, Field, PositiveInt, Extra, root_validator, validator
-
-
-TIME_FORMAT = (datetime.now()).isoformat(timespec='minutes')
-
+from pydantic import BaseModel, Extra, Field, PositiveInt, validator
 
 
 class CharityProjectBase(BaseModel):
@@ -17,7 +13,7 @@ class CharityProjectBase(BaseModel):
     class Config:
         extra = Extra.forbid
 
-    
+
 class CharityProjectCreate(CharityProjectBase):
     """Схема для создания нового объекта проекта."""
     name: str = Field(..., min_length=1, max_length=100)
@@ -25,7 +21,7 @@ class CharityProjectCreate(CharityProjectBase):
     full_amount: PositiveInt
 
 
-class CharityProjectUpdate(CharityProjectBase): 
+class CharityProjectUpdate(CharityProjectBase):
     pass
 
     @validator('name')
@@ -33,21 +29,6 @@ class CharityProjectUpdate(CharityProjectBase):
         if value is None:
             raise ValueError('Имя проекта не может быть пустым!')
         return value
-    
-    """@validator('full_amount')
-    def name_cant_be_null(cls, value: int):
-        if value is None:
-            raise ValueError('Имя проекта не может быть пустым!')
-        if value < cls.invested_amount:
-            raise ValueError('Нельзя устанавливать для поля full_amount сумму меньше уже внесённой!')
-        return value"""
-    
-    """@root_validator(skip_on_failure=True)
-    def fields_cannot_be_null(cls, values):
-        for field in ['name', 'description']:
-            if values[field] is None:
-                raise ValueError('Данное поле проекта не может быть пустым!')
-        return values"""
 
 
 class CharityProjectDB(CharityProjectCreate):
@@ -60,4 +41,3 @@ class CharityProjectDB(CharityProjectCreate):
 
     class Config:
         orm_mode = True
-

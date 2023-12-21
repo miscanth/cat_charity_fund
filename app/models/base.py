@@ -2,11 +2,13 @@ from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, Column, Integer
 
-from app.core.db import Base
 from app.core.config import settings
+from app.core.db import Base
 
 
 INVESTED_DEFAULT_VALUE = 0
+TIME_FORMAT = (datetime.now()).isoformat(timespec='minutes')
+
 
 class AbstractModel(Base):
     __abstract__ = True

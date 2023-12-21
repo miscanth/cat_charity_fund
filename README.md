@@ -100,9 +100,9 @@ uvicorn app.main:app --reload
 
 ```
 {
-    "name": "Корм",
-    "description": "На корм оставшимся без попечения кошкам.",
-    "full_amount": 7500
+  "name": "Корм",
+  "description": "На корм оставшимся без попечения кошкам.",
+  "full_amount": 7500
 }
 ```
 
@@ -124,22 +124,22 @@ uvicorn app.main:app --reload
 
 ```
 {
-    "name": "Медицинское обслуживание",
-    "description": "На медицинское обслуживание нуждающихся хвостатых."
+  "name": "Медицинское обслуживание",
+  "description": "На медицинское обслуживание нуждающихся хвостатых."
 }
 ```
 
 Пример ответа:
 ```
 {
-    "name": "Медицинское обслуживание",
-    "description": "На медицинское обслуживание нуждающихся хвостатых.",
-    "full_amount": 15000,
-    "id": 23,
-    "invested_amount": 0,
-    "fully_invested": false,
-    "create_date": "2023-12-21T11:05:50.698546",
-    "close_date": null
+  "name": "Медицинское обслуживание",
+  "description": "На медицинское обслуживание нуждающихся хвостатых.",
+  "full_amount": 15000,
+  "id": 23,
+  "invested_amount": 0,
+  "fully_invested": false,
+  "create_date": "2023-12-21T11:05:50.698546",
+  "close_date": null
 }
 ```
 

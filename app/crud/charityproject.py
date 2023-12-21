@@ -24,4 +24,4 @@ class CRUDCharityProject(CRUDBase):
         return db_project_id
 
 
-project_crud = CRUDCharityProject(CharityProject) 
+project_crud = CRUDCharityProject(CharityProject)
