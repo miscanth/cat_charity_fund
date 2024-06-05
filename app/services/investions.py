@@ -46,6 +46,13 @@ async def invest_in_project(
     await investment_process(project, not_invested_donations, session)
 
 
+async def close_process(obj):
+    """Общая функция закрытия для пожертвований и проектов."""
+    obj.invested_amount = obj.full_amount
+    obj.fully_invested = True
+    obj.close_date = datetime.now()
+
+
 async def investment_process(
         obj_in,
         not_invested_obj_list,
@@ -53,22 +60,17 @@ async def investment_process(
 ):
     """Общая функция инвестирования для пожертвований и проектов."""
     for obj in not_invested_obj_list:
-        if not obj_in.fully_invested:
-            if obj is not None:
-                obj_in_balance = obj_in.full_amount - obj_in.invested_amount
-                obj_balance = obj.full_amount - obj.invested_amount
-                if obj_in_balance <= obj_balance:
-                    obj.invested_amount = obj.invested_amount + obj_in_balance
-                    obj_in.invested_amount = obj_in.invested_amount + obj_in_balance
-                    obj_in.fully_invested = True
-                    obj_in.close_date = datetime.now()
-                    if obj_balance == obj_in_balance:
-                        obj.fully_invested = True
-                        obj.close_date = datetime.now()
-                elif obj_in_balance > obj_balance:
-                    obj.invested_amount = obj.full_amount
-                    obj.fully_invested = True
-                    obj.close_date = datetime.now()
-                    obj_in.invested_amount = obj_in.invested_amount + obj_balance
-                session.add(obj, obj_in)
+        if not obj_in.fully_invested and obj is not None:
+            obj_in_balance = obj_in.full_amount - obj_in.invested_amount
+            obj_balance = obj.full_amount - obj.invested_amount
+            if obj_in_balance < obj_balance:
+                obj.invested_amount = obj.invested_amount + obj_in_balance
+                await close_process(obj_in)
+            elif obj_in_balance > obj_balance:
+                obj_in.invested_amount = obj_in.invested_amount + obj_balance
+                await close_process(obj)
+            elif obj_balance == obj_in_balance:
+                    await close_process(obj)
+                    await close_process(obj_in)
+            session.add(obj, obj_in)
     await session.commit()
